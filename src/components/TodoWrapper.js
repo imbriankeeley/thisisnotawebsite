@@ -22,17 +22,6 @@ export const TodoWrapper = () => {
 		} catch (error) {
 			console.error('Error fetching todos:', error);
 		}
-
-		// try {
-		// 	const response = await fetch('http://localhost:3001/api/todos');
-		// 	if (!response.ok) {
-		// 		throw new Error('Failed to fetch todos');
-		// 	}
-		// 	const data = await response.json();
-		// 	setTodos(data);
-		// } catch (error) {
-		// 	console.error('Error fetching todos:', error);
-		// }
 	};
 
 	const addTodo = async (todo) => {
@@ -52,23 +41,6 @@ export const TodoWrapper = () => {
 		} catch (error) {
 			console.error('Error adding todo:', error);
 		}
-
-		// try {
-		// 	const response = await fetch('http://localhost:3001/api/todos', {
-		// 		method: 'POST',
-		// 		headers: {
-		// 			'Content-Type': 'application/json',
-		// 		},
-		// 		body: JSON.stringify({ id: uuidv4(), task: todo }),
-		// 	});
-		// 	if (!response.ok) {
-		// 		throw new Error('Failed to add todo');
-		// 	}
-		// 	const newTodo = await response.json();
-		// 	setTodos([...todos, newTodo]);
-		// } catch (error) {
-		// 	console.error('Error adding todo:', error);
-		// }
 	};
 
 	const toggleComplete = async (id) => {
@@ -84,35 +56,6 @@ export const TodoWrapper = () => {
 		} catch (error) {
 			console.error('Error udpating todo:', error);
 		}
-
-		// try {
-		// 	const todoToUpdate = todos.find((todo) => todo.id === id);
-		// 	const response = await fetch(
-		// 		`http://localhost:3001/api/todos/${id}/completed`,
-		// 		{
-		// 			method: 'PATCH',
-		// 			headers: {
-		// 				'Content-Type': 'application/json',
-		// 			},
-		// 			body: JSON.stringify({
-		// 				...todoToUpdate,
-		// 				completed: !todoToUpdate.completed,
-		// 			}),
-		// 		}
-		// 	);
-		// 	if (!response.ok) {
-		// 		throw new Error('Failed to update todo complete status');
-		// 	}
-		// 	setTodos(
-		// 		todos.map((todo) =>
-		// 			todo.id === id
-		// 				? { ...todo, completed: !todo.completed }
-		// 				: todo
-		// 		)
-		// 	);
-		// } catch (error) {
-		// 	console.error('Error updating todo:', error);
-		// }
 	};
 
 	const deleteTodo = async (id) => {
@@ -126,21 +69,6 @@ export const TodoWrapper = () => {
 		} catch (error) {
 			console.error('Error deleting todo:', error);
 		}
-
-		// try {
-		// 	const response = await fetch(
-		// 		`http://localhost:3001/api/todo/${id}`,
-		// 		{
-		// 			method: 'DELETE',
-		// 		}
-		// 	);
-		// 	if (!response.ok) {
-		// 		throw new Error('Failed to delete todo');
-		// 	}
-		// 	setTodos(todos.filter((todo) => todo.id !== id));
-		// } catch (error) {
-		// 	console.error('Error deleting todo:', error);
-		// }
 	};
 
 	const editTodo = async (id) => {
@@ -166,39 +94,6 @@ export const TodoWrapper = () => {
 		} catch (error) {
 			console.error('Error updating todo edit state:', error);
 		}
-
-		// try {
-		// 	const todoToEdit = todos.find((todo) => todo.id === id);
-		// 	const response = await fetch(
-		// 		`http://localhost:3001/api/todos/${id}/edit`,
-		// 		{
-		// 			method: 'PATCH',
-		// 			headers: {
-		// 				'Content-Type': 'application/json',
-		// 			},
-		// 			body: JSON.stringify({
-		// 				is_editing: !todoToEdit.is_editing,
-		// 				completed: todoToEdit.completed,
-		// 			}),
-		// 		}
-		// 	);
-		// 	if (!response.ok) {
-		// 		throw new Error('Failed to update todo edit state');
-		// 	}
-		// 	setTodos(
-		// 		todos.map((todo) =>
-		// 			todo.id === id
-		// 				? {
-		// 						...todo,
-		// 						isEditing: !todo.isEditing,
-		// 						completed: todo.completed,
-		// 					}
-		// 				: todo
-		// 		)
-		// 	);
-		// } catch (error) {
-		// 	console.error('Error updating todo edit state:', error);
-		// }
 	};
 
 	const editTask = async (task, id) => {
@@ -214,36 +109,6 @@ export const TodoWrapper = () => {
 		} catch (error) {
 			console.error('Error updating todo:', error);
 		}
-
-		// try {
-		// 	const todoToEdit = todos.find((todo) => todo.id === id);
-		// 	const response = await fetch(
-		// 		`http://localhost:3001/api/todos/${id}`,
-		// 		{
-		// 			method: 'PUT',
-		// 			headers: {
-		// 				'Content-Type': 'application/json',
-		// 			},
-		// 			body: JSON.stringify({
-		// 				task,
-		// 				is_editing: todoToEdit.is_editing,
-		// 				completed: todoToEdit.completed,
-		// 			}),
-		// 		}
-		// 	);
-		// 	if (!response.ok) {
-		// 		throw new Error('Failed to update todo');
-		// 	}
-		// 	setTodos(
-		// 		todos.map((todo) =>
-		// 			todo.id === id
-		// 				? { ...todo, task, isEditing: !todo.isEditing }
-		// 				: todo
-		// 		)
-		// 	);
-		// } catch (error) {
-		// 	console.error('Error updating todo:', error);
-		// }
 	};
 
 	// View
