@@ -1,9 +1,11 @@
 const express = require('express');
+const cors = require('cors');
 const pool = require('./database');
 
 const app = express();
 const port = 3001;
 
+app.use(cors());
 app.use(express.json());
 
 app.get('/api/todos', async (req, res) => {
@@ -34,11 +36,11 @@ app.post('/api/todos', async (req, res) => {
 // Update a todo
 app.put('/api/todos/:id', async (req, res) => {
 	const { id } = req.params;
-	const { task, completed } = req.body;
+	const { task, is_editing, completed } = req.body;
 	try {
 		const result = await pool.query(
-			'UPDATE todos SET task = $1, completed = $2 WHERE id = $3 RETURNING *',
-			[task, completed, id]
+			'UPDATE todos SET task = $1, is_editing = $2, completed = $3 WHERE id = $4 RETURNING *',
+			[task, is_editing, completed, id]
 		);
 		if (result.rows.length === 0) {
 			return res.status(404).json({ error: 'Todo not found' });
@@ -50,14 +52,33 @@ app.put('/api/todos/:id', async (req, res) => {
 	}
 });
 
+//Update completed state
+app.patch('/api/todos/:id/completed', async (req, res) => {
+	const { id } = req.params;
+	const { completed } = req.body;
+	try {
+		const result = await pool.query(
+			'UPDATE todos SET completed = $1 WHERE id = $2 RETURNING *',
+			[completed, id]
+		);
+		if (result.rows.length === 0) {
+			return res.status(404).json({ error: 'Todo not found' });
+		}
+		res.json(result.rows[0]);
+	} catch (error) {
+		console.error('Error updating todo edit state:', error);
+		res.status(500).json({ error: 'Internal server error' });
+	}
+});
+
 // Update is_editing state
 app.patch('/api/todos/:id/edit', async (req, res) => {
 	const { id } = req.params;
-	const { is_editing } = req.body;
+	const { is_editing, completed } = req.body;
 	try {
 		const result = await pool.query(
-			'UPDATE todos SET is_editing = $1 WHERE id = $2 RETURNING *',
-			[is_editing, id]
+			'UPDATE todos SET is_editing = $1, completed = $2 WHERE id = $3 RETURNING *',
+			[is_editing, completed, id]
 		);
 		if (result.rows.length === 0) {
 			return res.status(404).json({ error: 'Todo not found' });
