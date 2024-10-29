@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/thisisnotawebsite/static/css/main.2aa96ae7.css",
+    "main.js": "/thisisnotawebsite/static/js/main.cdde8dd1.js",
+    "static/js/453.7e7a844a.chunk.js": "/thisisnotawebsite/static/js/453.7e7a844a.chunk.js",
+    "index.html": "/thisisnotawebsite/index.html",
+    "main.2aa96ae7.css.map": "/thisisnotawebsite/static/css/main.2aa96ae7.css.map",
+    "main.cdde8dd1.js.map": "/thisisnotawebsite/static/js/main.cdde8dd1.js.map",
+    "453.7e7a844a.chunk.js.map": "/thisisnotawebsite/static/js/453.7e7a844a.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.2aa96ae7.css",
+    "static/js/main.cdde8dd1.js"
+  ]
+}
