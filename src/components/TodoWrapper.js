@@ -152,7 +152,17 @@ export const TodoWrapper = () => {
 				.eq('id', id)
 				.select();
 			if (error) throw error;
-			setTodos(todos.map((todo) => (todo.id === id ? data[0] : todo)));
+			setTodos(
+				todos.map((todo) =>
+					todo.id === id
+						? {
+								...todo,
+								isEditing: !todo.isEditing,
+								completed: todo.completed,
+							}
+						: todo
+				)
+			);
 		} catch (error) {
 			console.error('Error updating todo edit state:', error);
 		}
