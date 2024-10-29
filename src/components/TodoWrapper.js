@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import TodoForm from './TodoForm';
 import Todo from './Todo';
 import { v4 as uuidv4 } from 'uuid';
-import { isEditable } from '@testing-library/user-event/dist/utils';
 import EditTodoForm from './EditTodoForm';
 uuidv4();
 
