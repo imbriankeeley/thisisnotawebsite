@@ -187,3 +187,132 @@ h1 {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
+@media screen and (max-width: 496px) {
+
+  .auth-form {
+    display: flex;
+    justify-content: center;
+    align-items: center
+    ;
+  }
+
+  .button-form {
+    font-size: .5rem;
+  }
+  
+  .input-form {
+    width: 235px;
+    font-size: .5rem;
+    
+  }
+
+  .todo-container {
+    width: 25rem;
+  }
+
+  .h1-todo {
+    font-size: 1.2rem;
+  }
+
+  .todo-btn {
+    font-size: .8rem;
+  }
+
+  .todo-input {
+    font-size: .8rem;
+    width: 225px;
+  }
+
+}
+
+@media screen and (max-width: 420px) {
+
+  .auth-form {
+    display: flex;
+    justify-content: center;
+    align-items: center
+    ;
+  }
+
+  .h1-form {
+    font-size: 1.4rem;
+  }
+
+  .button-form {
+    font-size: .4rem;
+  }
+  
+  .input-form {
+    width: 175px;
+    font-size: .4rem;
+    
+  }
+
+  .auth-container {
+    width: 20rem;
+  }
+
+  .todo-container {
+    width: 20rem;
+  }
+
+  .h1-todo {
+    font-size: 1.1rem;
+  }
+
+  .todo-btn {
+    font-size: .6rem;
+  }
+
+  .todo-input {
+    font-size: .6rem;
+    width: 185px;
+  }
+
+}
+
+@media screen and (max-width: 335px) {
+
+  .auth-form {
+    display: flex;
+    justify-content: center;
+    align-items: center
+    ;
+  }
+
+  .h1-form {
+    font-size: 1rem;
+  }
+
+  .button-form {
+    font-size: .3rem;
+  }
+  
+  .input-form {
+    width: 155px;
+    font-size: .3rem;
+    
+  }
+
+  .auth-container {
+    width: 18rem;
+  }
+
+  .todo-container {
+    width: 17rem;
+  }
+
+  .h1-todo {
+    font-size: 1rem;
+  }
+
+  .todo-btn {
+    font-size: .4rem;
+  }
+
+  .todo-input {
+    font-size: .4rem;
+    width: 150px;
+  }
+
+}

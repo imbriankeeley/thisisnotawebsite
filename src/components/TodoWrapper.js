@@ -136,7 +136,7 @@ export const TodoWrapper = ({ session }) => {
 	// View
 	return (
 		<div className='todo-container'>
-			<h1>Get Things Done!</h1>
+			<h1 className='h1-todo'>Get Things Done!</h1>
 			<TodoForm addTodo={addTodo} />
 			{todos.map((todo, index) =>
 				todo.isEditing ? (
