@@ -36,7 +36,7 @@ export const TodoWrapper = ({ session }) => {
 			console.error('Error fetching todos:', error);
 		}
 	}, [user]);
-
+  
 	useEffect(() => {
 		if (user) {
 			fetchTodos();
