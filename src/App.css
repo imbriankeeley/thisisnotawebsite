@@ -32,8 +32,12 @@ h1 {
 }
 
 .TodoForm {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   width: 100%;
   margin-bottom: 1rem;
+  gap: .5rem;
 }
 
 .todo-input {
@@ -42,7 +46,7 @@ h1 {
   border: 1px solid #8758ff;
   padding: 0.5rem 1rem;
   margin-top: 1rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   width: 300px;
   color: #fff;
 }
@@ -57,6 +61,19 @@ h1 {
   border: none;
   padding: 0.55rem;
   cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.todo-btn:hover{
+  background: #8f69f1;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.todo-btn:active{
+  background: #7f4dff;
+  transform: translateY(1px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .Todo {
@@ -72,7 +89,19 @@ h1 {
 
 .fa-trash {
   margin-left: 0.75rem;
+  transition: all 0.3s ease;
 }
+
+.fa-trash:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.fa-trash:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
 
 .incompleted {
   color: #fff;
@@ -85,7 +114,76 @@ h1 {
   cursor: pointer;
 }
 
+.fa-pen-to-square{
+  transition: all 0.3s ease;
+}
+
+.fa-pen-to-square:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.fa-pen-to-square:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
 .edit-icon,
 .delete-icon {
   cursor: pointer;
 }
+
+.todo-container {
+  background: #1A1A40;
+  margin-top: 5rem;
+  padding: 2rem;
+  border-radius: 5px;
+}
+
+.auth-container {
+  background: #1A1A40;
+  margin-top: 5rem;
+  padding: 2rem;
+  border-radius: 5px;
+}
+
+.auth-form {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: .5rem;
+}
+
+.input-form {
+  padding-left: .5rem;
+  outline: none;
+  background: none;
+  border: 1px solid #8758ff;
+  padding: 0.5rem 1rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  width: 300px;
+  color: #fff;
+}
+
+.button-form{
+  background: #8758ff;
+  color: #fff;
+  border: none;
+  padding: 0.55rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.button-form:hover{
+  background: #8f69f1;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.button-form:active{
+  background: #7f4dff;
+  transform: translateY(1px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+

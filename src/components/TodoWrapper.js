@@ -6,17 +6,37 @@ import EditTodoForm from './EditTodoForm';
 import supabase from '../database';
 uuidv4();
 
-export const TodoWrapper = () => {
+export const TodoWrapper = ({ session }) => {
+	const [user, setUser] = useState(session?.user ?? null);
 	const [todos, setTodos] = useState([]);
+
+	// Set user
+	useEffect(() => {
+		const { data: authListener } = supabase.auth.onAuthStateChange(
+			(event, session) => {
+				setUser(session?.user ?? null);
+			}
+		);
+
+		return () => {
+			authListener.subscription.unsubscribe();
+		};
+	}, []);
 
 	// Retrieve todos from database
 	useEffect(() => {
-		fetchTodos();
-	}, []);
+		if (user) {
+			fetchTodos();
+		}
+	}, [user]);
 
 	const fetchTodos = async () => {
+		if (!user) return;
 		try {
-			const { data, error } = await supabase.from('todos').select('*');
+			const { data, error } = await supabase
+				.from('todos')
+				.select('*')
+				.eq('user_id', user.id);
 			if (error) throw error;
 			setTodos(data);
 		} catch (error) {
@@ -25,12 +45,14 @@ export const TodoWrapper = () => {
 	};
 
 	const addTodo = async (todo) => {
+		if (!user) return;
 		try {
 			const newTodo = {
 				id: uuidv4(),
 				task: todo,
 				completed: false,
 				is_editing: false,
+				user_id: user.id,
 			};
 			const { data, error } = await supabase
 				.from('todos')
@@ -113,7 +135,7 @@ export const TodoWrapper = () => {
 
 	// View
 	return (
-		<div className='TodoWrapper'>
+		<div className='todo-container'>
 			<h1>Get Things Done!</h1>
 			<TodoForm addTodo={addTodo} />
 			{todos.map((todo, index) =>
