@@ -1,13 +1,32 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, {
+	useState,
+	useEffect,
+	useCallback,
+	useMemo,
+	useRef,
+} from 'react';
 import TodoForm from './TodoForm';
 import Todo from './Todo';
 import { v4 as uuidv4 } from 'uuid';
 import EditTodoForm from './EditTodoForm';
 import supabase from '../database';
 
+const CACHE_KEY = 'cachedTodos';
+
 export const TodoWrapper = ({ session }) => {
 	const [user, setUser] = useState(session?.user ?? null);
-	const [todos, setTodos] = useState([]);
+	const [todos, setTodos] = useState(() => {
+		const cachedTodos = localStorage.getItem(CACHE_KEY);
+		return cachedTodos ? JSON.parse(cachedTodos) : [];
+	});
+
+	const MemoizedTodo = useMemo(() => React.memo(Todo), []);
+	const MemoizedEditTodoForm = useMemo(() => React.memo(EditTodoForm), []);
+
+	// Use refs for stable function references
+	const toggleCompleteRef = useRef();
+	const deleteTodoRef = useRef();
+	const editTodoRef = useRef();
 
 	// Set user
 	useEffect(() => {
@@ -43,38 +62,48 @@ export const TodoWrapper = ({ session }) => {
 		}
 	}, [user, fetchTodos]);
 
-	const addTodo = async (todo) => {
-		if (!user) return;
+	// Update localStorage when todos change
+	useEffect(() => {
+		localStorage.setItem(CACHE_KEY, JSON.stringify(todos));
+	}, [todos]);
 
-		const newTodo = {
-			id: uuidv4(),
-			task: todo,
-			completed: false,
-			is_editing: false,
-			user_id: user.id,
-		};
+	const addTodo = useCallback(
+		async (todo) => {
+			if (!user) return;
 
-		setTodos([...todos, newTodo]);
+			const newTodo = {
+				id: uuidv4(),
+				task: todo,
+				completed: false,
+				is_editing: false,
+				user_id: user.id,
+			};
 
-		try {
-			const { data, error } = await supabase
-				.from('todos')
-				.insert(newTodo)
-				.select();
-			if (error) throw error;
+			setTodos((prevTodos) => [...prevTodos, newTodo]);
 
-			setTodos((todos) =>
-				todos.map((t) => (t.id === newTodo.id ? data[0] : t))
-			);
-		} catch (error) {
-			console.error('Error adding todo:', error);
-			setTodos((todos) => todos.filter((t) => t.id !== newTodo.id));
-		}
-	};
+			try {
+				const { data, error } = await supabase
+					.from('todos')
+					.insert(newTodo)
+					.select();
+				if (error) throw error;
 
-	const toggleComplete = async (id) => {
-		setTodos(
-			todos.map((todo) =>
+				setTodos((prevTodos) =>
+					prevTodos.map((t) => (t.id === newTodo.id ? data[0] : t))
+				);
+			} catch (error) {
+				console.error('Error adding todo:', error);
+				setTodos((prevTodos) =>
+					prevTodos.filter((t) => t.id !== newTodo.id)
+				);
+			}
+		},
+		[user]
+	);
+
+	toggleCompleteRef.current = async (id) => {
+		setTodos((prevTodos) =>
+			prevTodos.map((todo) =>
 				todo.id === id ? { ...todo, completed: !todo.completed } : todo
 			)
 		);
@@ -84,24 +113,18 @@ export const TodoWrapper = ({ session }) => {
 			const { error } = await supabase
 				.from('todos')
 				.update({ completed: !todoToUpdate.completed })
-				.eq('id', id)
-				.select();
+				.eq('id', id);
 			if (error) throw error;
 		} catch (error) {
-			console.error('Error udpating todo:', error);
-			setTodos(
-				todos.map((todo) =>
-					todo.id === id
-						? { ...todo, completed: !todo.completed }
-						: todo
-				)
-			);
+			console.error('Error updating todo:', error);
+			fetchTodos(); // Revert to server state on error
 		}
 	};
 
-	const deleteTodo = async (id) => {
+	deleteTodoRef.current = async (id) => {
+		setTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
+
 		try {
-			setTodos(todos.filter((todo) => todo.id !== id));
 			const { error } = await supabase
 				.from('todos')
 				.delete()
@@ -109,20 +132,14 @@ export const TodoWrapper = ({ session }) => {
 			if (error) throw error;
 		} catch (error) {
 			console.error('Error deleting todo:', error);
-			fetchTodos();
+			fetchTodos(); // Revert to server state on error
 		}
 	};
 
-	const editTodo = async (id) => {
-		setTodos(
-			todos.map((todo) =>
-				todo.id === id
-					? {
-							...todo,
-							isEditing: !todo.isEditing,
-							completed: todo.completed,
-						}
-					: todo
+	editTodoRef.current = async (id) => {
+		setTodos((prevTodos) =>
+			prevTodos.map((todo) =>
+				todo.id === id ? { ...todo, isEditing: !todo.isEditing } : todo
 			)
 		);
 
@@ -135,54 +152,59 @@ export const TodoWrapper = ({ session }) => {
 			if (error) throw error;
 		} catch (error) {
 			console.error('Error updating todo edit state:', error);
-			setTodos(
-				todos.map((todo) =>
-					todo.id === id
-						? { ...todo, isEditing: !todo.isEditing }
-						: todo
+			fetchTodos(); // Revert to server state on error
+		}
+	};
+
+	const editTask = useCallback(
+		async (task, id) => {
+			setTodos((prevTodos) =>
+				prevTodos.map((todo) =>
+					todo.id === id ? { ...todo, task, isEditing: false } : todo
 				)
 			);
-		}
-	};
 
-	const editTask = async (task, id) => {
-		setTodos(
+			try {
+				const { error } = await supabase
+					.from('todos')
+					.update({ task, is_editing: false })
+					.eq('id', id);
+				if (error) throw error;
+			} catch (error) {
+				console.error('Error updating todo:', error);
+				fetchTodos(); // Revert to server state on error
+			}
+		},
+		[fetchTodos]
+	);
+
+	const memoizedTodoList = useMemo(
+		() =>
 			todos.map((todo) =>
-				todo.id === id ? { ...todo, task, isEditing: false } : todo
-			)
-		);
+				todo.isEditing ? (
+					<MemoizedEditTodoForm
+						key={todo.id}
+						editTodo={editTask}
+						task={todo}
+					/>
+				) : (
+					<MemoizedTodo
+						key={todo.id}
+						task={todo}
+						toggleComplete={toggleCompleteRef.current}
+						deleteTodo={deleteTodoRef.current}
+						editTodo={editTodoRef.current}
+					/>
+				)
+			),
+		[todos, editTask, MemoizedEditTodoForm, MemoizedTodo]
+	);
 
-		try {
-			const { error } = await supabase
-				.from('todos')
-				.update({ task, is_editing: false })
-				.eq('id', id)
-				.select();
-			if (error) throw error;
-		} catch (error) {
-			console.error('Error updating todo:', error);
-			fetchTodos();
-		}
-	};
-
-	// View
 	return (
 		<div className='todo-container'>
 			<h1 className='h1-todo'>Get Things Done!</h1>
 			<TodoForm addTodo={addTodo} />
-			{todos.map((todo) =>
-				todo.isEditing ? (
-					<EditTodoForm editTodo={editTask} task={todo} />
-				) : (
-					<Todo
-						task={todo}
-						key={todo.id}
-						toggleComplete={toggleComplete}
-						deleteTodo={deleteTodo}
-						editTodo={editTodo}
-					/>
-				)
-			)}
+			{memoizedTodoList}
 		</div>
 	);
 };
