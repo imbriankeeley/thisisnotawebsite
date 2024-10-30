@@ -1,11 +1,15 @@
 import { createClient } from '@supabase/supabase-js';
 
 async function initializeSupabase() {
-	const response = await fetch('../functions/supabase-config');
 	try {
+		const response = await fetch('/supabase-config');
+		if (!response.ok) {
+			throw new Error(`HTTP error! status: ${response.status}`);
+		}
+
 		const { supabaseUrl, supabaseKey } = await response.json();
 
-		if (!response.supabaseUrl || !response.supabaseKey) {
+		if (!supabaseUrl || !supabaseKey) {
 			throw new Error('Supabase configuration is incomplete');
 		}
 
@@ -14,7 +18,10 @@ async function initializeSupabase() {
 		const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
 		const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
 
-		return createClient(supabaseUrl, supabaseKey);
+		if (supabaseUrl && supabaseKey) {
+			return createClient(supabaseUrl, supabaseKey);
+		}
+		throw error;
 	}
 }
 
