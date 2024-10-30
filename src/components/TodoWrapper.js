@@ -81,7 +81,7 @@ export const TodoWrapper = ({ session }) => {
 
 		try {
 			const todoToUpdate = todos.find((todo) => todo.id === id);
-			const { data, error } = await supabase
+			const { error } = await supabase
 				.from('todos')
 				.update({ completed: !todoToUpdate.completed })
 				.eq('id', id)
@@ -153,7 +153,7 @@ export const TodoWrapper = ({ session }) => {
 		);
 
 		try {
-			const { data, error } = await supabase
+			const { error } = await supabase
 				.from('todos')
 				.update({ task, is_editing: false })
 				.eq('id', id)
