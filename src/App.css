@@ -51,6 +51,7 @@ h1 {
   color: #fff;
 }
 
+
 .todo-input::placeholder {
   color: #ffffff4d;
 }
@@ -62,6 +63,19 @@ h1 {
   padding: 0.55rem;
   cursor: pointer;
   transition: all 0.3s ease;
+}
+
+p {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+p:hover {
+  transform: translateY(-2px);
+}
+
+p:active {
+  transform: translateY(1px);
 }
 
 .todo-btn:hover{
@@ -88,6 +102,7 @@ h1 {
 }
 
 .fa-trash {
+  cursor: pointer;
   margin-left: 0.75rem;
   transition: all 0.3s ease;
 }
@@ -115,6 +130,7 @@ h1 {
 }
 
 .fa-pen-to-square{
+  cursor: pointer;
   transition: all 0.3s ease;
 }
 
