@@ -4,7 +4,6 @@ import Todo from './Todo';
 import { v4 as uuidv4 } from 'uuid';
 import EditTodoForm from './EditTodoForm';
 import supabase from '../database';
-uuidv4();
 
 export const TodoWrapper = ({ session }) => {
 	const [user, setUser] = useState(session?.user ?? null);
@@ -37,14 +36,12 @@ export const TodoWrapper = ({ session }) => {
 			console.error('Error fetching todos:', error);
 		}
 	}, [user]);
-	
+
 	useEffect(() => {
 		if (user) {
 			fetchTodos();
 		}
 	}, [user, fetchTodos]);
-
-	
 
 	const addTodo = async (todo) => {
 		if (!user) return;
@@ -98,7 +95,7 @@ export const TodoWrapper = ({ session }) => {
 	const editTodo = async (id) => {
 		try {
 			const todoToEdit = todos.find((todo) => todo.id === id);
-			const { data, error } = await supabase
+			const { error } = await supabase
 				.from('todos')
 				.update({ is_editing: !todoToEdit.is_editing })
 				.eq('id', id)
@@ -122,7 +119,6 @@ export const TodoWrapper = ({ session }) => {
 
 	const editTask = async (task, id) => {
 		try {
-			const todoToEdit = todos.find((todo) => todo.id === id);
 			const { data, error } = await supabase
 				.from('todos')
 				.update({ task, is_editing: false })
@@ -146,7 +142,7 @@ export const TodoWrapper = ({ session }) => {
 				) : (
 					<Todo
 						task={todo}
-						key={index}
+						key={todo.id}
 						toggleComplete={toggleComplete}
 						deleteTodo={deleteTodo}
 						editTodo={editTodo}
