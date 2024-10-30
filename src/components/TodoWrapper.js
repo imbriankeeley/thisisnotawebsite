@@ -45,20 +45,27 @@ export const TodoWrapper = ({ session }) => {
 
 	const addTodo = async (todo) => {
 		if (!user) return;
+
+		const newTodo = {
+			id: uuidv4(),
+			task: todo,
+			completed: false,
+			is_editing: false,
+			user_id: user.id,
+		};
+
+		setTodos([...todos, newTodo]);
+
 		try {
-			const newTodo = {
-				id: uuidv4(),
-				task: todo,
-				completed: false,
-				is_editing: false,
-				user_id: user.id,
-			};
 			const { data, error } = await supabase
 				.from('todos')
 				.insert(newTodo)
 				.select();
 			if (error) throw error;
-			setTodos([...todos, data[0]]);
+
+			setTodos((todos) =>
+				todos.map((t) => (t.id === newTodo.id ? data[0] : t))
+			);
 		} catch (error) {
 			console.error('Error adding todo:', error);
 		}
@@ -67,13 +74,13 @@ export const TodoWrapper = ({ session }) => {
 	const toggleComplete = async (id) => {
 		try {
 			const todoToUpdate = todos.find((todo) => todo.id === id);
+			setTodos(todos.map((todo) => (todo.id === id ? data[0] : todo)));
 			const { data, error } = await supabase
 				.from('todos')
 				.update({ completed: !todoToUpdate.completed })
 				.eq('id', id)
 				.select();
 			if (error) throw error;
-			setTodos(todos.map((todo) => (todo.id === id ? data[0] : todo)));
 		} catch (error) {
 			console.error('Error udpating todo:', error);
 		}
@@ -81,12 +88,12 @@ export const TodoWrapper = ({ session }) => {
 
 	const deleteTodo = async (id) => {
 		try {
+			setTodos(todos.filter((todo) => todo.id !== id));
 			const { error } = await supabase
 				.from('todos')
 				.delete()
 				.eq('id', id);
 			if (error) throw error;
-			setTodos(todos.filter((todo) => todo.id !== id));
 		} catch (error) {
 			console.error('Error deleting todo:', error);
 		}
@@ -95,12 +102,6 @@ export const TodoWrapper = ({ session }) => {
 	const editTodo = async (id) => {
 		try {
 			const todoToEdit = todos.find((todo) => todo.id === id);
-			const { error } = await supabase
-				.from('todos')
-				.update({ is_editing: !todoToEdit.is_editing })
-				.eq('id', id)
-				.select();
-			if (error) throw error;
 			setTodos(
 				todos.map((todo) =>
 					todo.id === id
@@ -112,6 +113,12 @@ export const TodoWrapper = ({ session }) => {
 						: todo
 				)
 			);
+			const { error } = await supabase
+				.from('todos')
+				.update({ is_editing: !todoToEdit.is_editing })
+				.eq('id', id)
+				.select();
+			if (error) throw error;
 		} catch (error) {
 			console.error('Error updating todo edit state:', error);
 		}
@@ -119,13 +126,13 @@ export const TodoWrapper = ({ session }) => {
 
 	const editTask = async (task, id) => {
 		try {
+			setTodos(todos.map((todo) => (todo.id === id ? data[0] : todo)));
 			const { data, error } = await supabase
 				.from('todos')
 				.update({ task, is_editing: false })
 				.eq('id', id)
 				.select();
 			if (error) throw error;
-			setTodos(todos.map((todo) => (todo.id === id ? data[0] : todo)));
 		} catch (error) {
 			console.error('Error updating todo:', error);
 		}
