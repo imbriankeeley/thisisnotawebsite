@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import TodoForm from './TodoForm';
 import Todo from './Todo';
 import { v4 as uuidv4 } from 'uuid';
@@ -24,13 +24,7 @@ export const TodoWrapper = ({ session }) => {
 	}, []);
 
 	// Retrieve todos from database
-	useEffect(() => {
-		if (user) {
-			fetchTodos();
-		}
-	}, [user]);
-
-	const fetchTodos = async () => {
+	const fetchTodos = useCallback(async () => {
 		if (!user) return;
 		try {
 			const { data, error } = await supabase
@@ -42,7 +36,15 @@ export const TodoWrapper = ({ session }) => {
 		} catch (error) {
 			console.error('Error fetching todos:', error);
 		}
-	};
+	}, [user]);
+	
+	useEffect(() => {
+		if (user) {
+			fetchTodos();
+		}
+	}, [user, fetchTodos]);
+
+	
 
 	const addTodo = async (todo) => {
 		if (!user) return;
