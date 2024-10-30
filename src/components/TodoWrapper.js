@@ -36,7 +36,7 @@ export const TodoWrapper = ({ session }) => {
 			console.error('Error fetching todos:', error);
 		}
 	}, [user]);
-  
+
 	useEffect(() => {
 		if (user) {
 			fetchTodos();
@@ -136,7 +136,7 @@ export const TodoWrapper = ({ session }) => {
 		<div className='todo-container'>
 			<h1 className='h1-todo'>Get Things Done!</h1>
 			<TodoForm addTodo={addTodo} />
-			{todos.map((todo, index) =>
+			{todos.map((todo) =>
 				todo.isEditing ? (
 					<EditTodoForm editTodo={editTask} task={todo} />
 				) : (

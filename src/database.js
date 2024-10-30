@@ -1,12 +1,18 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
-const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+async function initializeSupabase() {
+	const response = await fetch('../functions/supabase-config');
+	try {
+		const { supabaseUrl, supabaseKey } = await response.json();
+		return createClient(supabaseUrl, supabaseKey);
+	} catch (error) {
+		const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+		const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseKey) {
-	throw new Error('Missing Supabase credentials');
+		return createClient(supabaseUrl, supabaseKey);
+	}
 }
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = await initializeSupabase();
 
 export default supabase;
