@@ -1,10 +1,4 @@
-import React, {
-	useState,
-	useEffect,
-	useCallback,
-	useMemo,
-	useRef,
-} from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import TodoForm from './TodoForm';
 import Todo from './Todo';
 import { v4 as uuidv4 } from 'uuid';
@@ -13,200 +7,188 @@ import supabase from '../database';
 
 const CACHE_KEY = 'cachedTodos';
 
+const MemoizedTodo = React.memo(Todo);
+const MemoizedEditTodoForm = React.memo(EditTodoForm);
+
 export const TodoWrapper = ({ session }) => {
-	const [user, setUser] = useState(session?.user ?? null);
-	const [todos, setTodos] = useState(() => {
-		const cachedTodos = localStorage.getItem(CACHE_KEY);
-		return cachedTodos ? JSON.parse(cachedTodos) : [];
-	});
+  const [user, setUser] = useState(session?.user ?? null);
+  const [todos, setTodos] = useState(() => {
+    const cachedTodos = localStorage.getItem(CACHE_KEY);
+    return cachedTodos ? JSON.parse(cachedTodos) : [];
+  });
 
-	const MemoizedTodo = useMemo(() => React.memo(Todo), []);
-	const MemoizedEditTodoForm = useMemo(() => React.memo(EditTodoForm), []);
+  // Set user
+  useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user ?? null);
+      }
+    );
 
-	// Use refs for stable function references
-	const toggleCompleteRef = useRef();
-	const deleteTodoRef = useRef();
-	const editTodoRef = useRef();
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
 
-	// Set user
-	useEffect(() => {
-		const { data: authListener } = supabase.auth.onAuthStateChange(
-			(event, session) => {
-				setUser(session?.user ?? null);
-			}
-		);
+  // Retrieve todos from database
+  const fetchTodos = useCallback(async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('todos')
+        .select('*')
+        .eq('user_id', user.id);
+      if (error) throw error;
+      setTodos(data);
+    } catch (error) {
+      console.error('Error fetching todos:', error);
+    }
+  }, [user]);
 
-		return () => {
-			authListener.subscription.unsubscribe();
-		};
-	}, []);
+  useEffect(() => {
+    if (user) {
+      fetchTodos();
+    }
+  }, [user, fetchTodos]);
 
-	// Retrieve todos from database
-	const fetchTodos = useCallback(async () => {
-		if (!user) return;
-		try {
-			const { data, error } = await supabase
-				.from('todos')
-				.select('*')
-				.eq('user_id', user.id);
-			if (error) throw error;
-			setTodos(data);
-		} catch (error) {
-			console.error('Error fetching todos:', error);
-		}
-	}, [user]);
+  // Update localStorage when todos change
+  useEffect(() => {
+    localStorage.setItem(CACHE_KEY, JSON.stringify(todos));
+  }, [todos]);
 
-	useEffect(() => {
-		if (user) {
-			fetchTodos();
-		}
-	}, [user, fetchTodos]);
+  const addTodo = useCallback(async (todo) => {
+    if (!user) return;
 
-	// Update localStorage when todos change
-	useEffect(() => {
-		localStorage.setItem(CACHE_KEY, JSON.stringify(todos));
-	}, [todos]);
+    const newTodo = {
+      id: uuidv4(),
+      task: todo,
+      completed: false,
+      is_editing: false,
+      user_id: user.id,
+    };
 
-	const addTodo = useCallback(
-		async (todo) => {
-			if (!user) return;
+    setTodos((prevTodos) => [...prevTodos, newTodo]);
 
-			const newTodo = {
-				id: uuidv4(),
-				task: todo,
-				completed: false,
-				is_editing: false,
-				user_id: user.id,
-			};
+    try {
+      const { data, error } = await supabase
+        .from('todos')
+        .insert(newTodo)
+        .select();
+      if (error) throw error;
 
-			setTodos((prevTodos) => [...prevTodos, newTodo]);
+      setTodos((prevTodos) =>
+        prevTodos.map((t) => (t.id === newTodo.id ? data[0] : t))
+      );
+    } catch (error) {
+      console.error('Error adding todo:', error);
+      setTodos((prevTodos) =>
+        prevTodos.filter((t) => t.id !== newTodo.id)
+      );
+    }
+  }, [user]);
 
-			try {
-				const { data, error } = await supabase
-					.from('todos')
-					.insert(newTodo)
-					.select();
-				if (error) throw error;
+  const toggleComplete = useCallback(async (id) => {
+    setTodos((prevTodos) =>
+      prevTodos.map((todo) =>
+        todo.id === id ? { ...todo, completed: !todo.completed } : todo
+      )
+    );
 
-				setTodos((prevTodos) =>
-					prevTodos.map((t) => (t.id === newTodo.id ? data[0] : t))
-				);
-			} catch (error) {
-				console.error('Error adding todo:', error);
-				setTodos((prevTodos) =>
-					prevTodos.filter((t) => t.id !== newTodo.id)
-				);
-			}
-		},
-		[user]
-	);
+    try {
+      const todoToUpdate = todos.find((todo) => todo.id === id);
+      const { error } = await supabase
+        .from('todos')
+        .update({ completed: !todoToUpdate.completed })
+        .eq('id', id);
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error updating todo:', error);
+      fetchTodos(); // Revert to server state on error
+    }
+  }, [todos, fetchTodos]);
 
-	toggleCompleteRef.current = async (id) => {
-		setTodos((prevTodos) =>
-			prevTodos.map((todo) =>
-				todo.id === id ? { ...todo, completed: !todo.completed } : todo
-			)
-		);
+  const deleteTodo = useCallback(async (id) => {
+    setTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
 
-		try {
-			const todoToUpdate = todos.find((todo) => todo.id === id);
-			const { error } = await supabase
-				.from('todos')
-				.update({ completed: !todoToUpdate.completed })
-				.eq('id', id);
-			if (error) throw error;
-		} catch (error) {
-			console.error('Error updating todo:', error);
-			fetchTodos(); // Revert to server state on error
-		}
-	};
+    try {
+      const { error } = await supabase
+        .from('todos')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error deleting todo:', error);
+      fetchTodos(); // Revert to server state on error
+    }
+  }, [fetchTodos]);
 
-	deleteTodoRef.current = async (id) => {
-		setTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
+  const editTodo = useCallback(async (id) => {
+    setTodos((prevTodos) =>
+      prevTodos.map((todo) =>
+        todo.id === id ? { ...todo, isEditing: !todo.isEditing } : todo
+      )
+    );
 
-		try {
-			const { error } = await supabase
-				.from('todos')
-				.delete()
-				.eq('id', id);
-			if (error) throw error;
-		} catch (error) {
-			console.error('Error deleting todo:', error);
-			fetchTodos(); // Revert to server state on error
-		}
-	};
+    try {
+      const todoToEdit = todos.find((todo) => todo.id === id);
+      const { error } = await supabase
+        .from('todos')
+        .update({ is_editing: !todoToEdit.is_editing })
+        .eq('id', id);
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error updating todo edit state:', error);
+      fetchTodos(); // Revert to server state on error
+    }
+  }, [todos, fetchTodos]);
 
-	editTodoRef.current = async (id) => {
-		setTodos((prevTodos) =>
-			prevTodos.map((todo) =>
-				todo.id === id ? { ...todo, isEditing: !todo.isEditing } : todo
-			)
-		);
+  const editTask = useCallback(async (task, id) => {
+    setTodos((prevTodos) =>
+      prevTodos.map((todo) =>
+        todo.id === id ? { ...todo, task, isEditing: false } : todo
+      )
+    );
 
-		try {
-			const todoToEdit = todos.find((todo) => todo.id === id);
-			const { error } = await supabase
-				.from('todos')
-				.update({ is_editing: !todoToEdit.is_editing })
-				.eq('id', id);
-			if (error) throw error;
-		} catch (error) {
-			console.error('Error updating todo edit state:', error);
-			fetchTodos(); // Revert to server state on error
-		}
-	};
+    try {
+      const { error } = await supabase
+        .from('todos')
+        .update({ task, is_editing: false })
+        .eq('id', id);
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error updating todo:', error);
+      fetchTodos(); // Revert to server state on error
+    }
+  }, [fetchTodos]);
 
-	const editTask = useCallback(
-		async (task, id) => {
-			setTodos((prevTodos) =>
-				prevTodos.map((todo) =>
-					todo.id === id ? { ...todo, task, isEditing: false } : todo
-				)
-			);
+  const memoizedTodoList = useMemo(() =>
+    todos.map((todo) =>
+      todo.isEditing ? (
+        <MemoizedEditTodoForm
+          key={todo.id}
+          editTodo={editTask}
+          task={todo}
+        />
+      ) : (
+        <MemoizedTodo
+          key={todo.id}
+          task={todo}
+          toggleComplete={toggleComplete}
+          deleteTodo={deleteTodo}
+          editTodo={editTodo}
+        />
+      )
+    ),
+    [todos, editTask, toggleComplete, deleteTodo, editTodo]
+  );
 
-			try {
-				const { error } = await supabase
-					.from('todos')
-					.update({ task, is_editing: false })
-					.eq('id', id);
-				if (error) throw error;
-			} catch (error) {
-				console.error('Error updating todo:', error);
-				fetchTodos(); // Revert to server state on error
-			}
-		},
-		[fetchTodos]
-	);
-
-	const memoizedTodoList = useMemo(
-		() =>
-			todos.map((todo) =>
-				todo.isEditing ? (
-					<MemoizedEditTodoForm
-						key={todo.id}
-						editTodo={editTask}
-						task={todo}
-					/>
-				) : (
-					<MemoizedTodo
-						key={todo.id}
-						task={todo}
-						toggleComplete={toggleCompleteRef.current}
-						deleteTodo={deleteTodoRef.current}
-						editTodo={editTodoRef.current}
-					/>
-				)
-			),
-		[todos, editTask, MemoizedEditTodoForm, MemoizedTodo]
-	);
-
-	return (
-		<div className='todo-container'>
-			<h1 className='h1-todo'>Get Things Done!</h1>
-			<TodoForm addTodo={addTodo} />
-			{memoizedTodoList}
-		</div>
-	);
+  return (
+    <div className='todo-container'>
+      <h1 className='h1-todo'>Get Things Done!</h1>
+      <TodoForm addTodo={addTodo} />
+      {memoizedTodoList}
+    </div>
+  );
 };
 
 export default TodoWrapper;
